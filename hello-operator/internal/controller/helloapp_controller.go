@@ -207,6 +207,9 @@ func (r *HelloAppReconciler) deploymentForHelloApp(helloApp *hellov1alpha1.Hello
 						SecurityContext: &corev1.SecurityContext{
 							AllowPrivilegeEscalation: boolPtr(false),
 							RunAsNonRoot:             boolPtr(true),
+							Capabilities: &corev1.Capabilities{
+								Drop: []corev1.Capability{"ALL"},
+							},
 							SeccompProfile: &corev1.SeccompProfile{
 								Type: corev1.SeccompProfileTypeRuntimeDefault,
 							},
