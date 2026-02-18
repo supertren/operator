@@ -28,7 +28,8 @@ echo ""
 echo "Entradas añadidas a /etc/hosts"
 
 # Copiar el certificado de CRC desde Windows (si existe)
-CRC_CERT_PATH="/mnt/c/Users/mik/.crc/machines/crc/kubeconfig"
+WIN_USER=$(cmd.exe /c 'echo %USERNAME%' 2>/dev/null | tr -d '\r')
+CRC_CERT_PATH="/mnt/c/Users/${WIN_USER}/.crc/machines/crc/kubeconfig"
 if [ -f "$CRC_CERT_PATH" ]; then
   mkdir -p ~/.kube
   cp "$CRC_CERT_PATH" ~/.kube/config

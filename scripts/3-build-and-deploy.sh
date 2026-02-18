@@ -61,13 +61,13 @@ echo "[5/5] Desplegando el operador en OpenShift..."
 echo "Instalando CRD y RBAC de cluster (requiere kubeadmin)..."
 oc login -u kubeadmin https://api.crc.testing:6443 --insecure-skip-tls-verify
 oc apply -f config/crd/bases/
+oc apply -f config/rbac/service_account.yaml
 oc apply -f config/rbac/role.yaml
 oc apply -f config/rbac/role_binding.yaml
 
 # Namespace y recursos namespace-level con developer
 echo "Desplegando manager (developer)..."
 oc login -u developer -p developer https://api.crc.testing:6443 --insecure-skip-tls-verify
-oc apply -f config/rbac/service_account.yaml
 sed "s|controller:latest|${IMG}|g" config/manager/manager.yaml | oc apply -f -
 
 # Esperar a que el deployment esté listo
