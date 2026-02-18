@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -85,27 +86,28 @@ func (r *HelloAppReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
+	// Define the desired Deployment object
+	dep, err := r.deploymentForHelloApp(helloApp)
+	if err != nil {
+		logger.Error(err, "Failed to define new Deployment resource for HelloApp")
+		meta.SetStatusCondition(&helloApp.Status.Conditions, metav1.Condition{
+			Type:               typeAvailableHelloApp,
+			Status:             metav1.ConditionFalse,
+			ObservedGeneration: helloApp.Generation,
+			Reason:             "Reconciling",
+			Message:            fmt.Sprintf("Failed to create Deployment: %s", err),
+		})
+		if err := r.Status().Update(ctx, helloApp); err != nil {
+			logger.Error(err, "Failed to update HelloApp status")
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{}, err
+	}
+
 	// Check if the Deployment already exists, if not create one
 	found := &appsv1.Deployment{}
 	err = r.Get(ctx, types.NamespacedName{Name: helloApp.Name, Namespace: helloApp.Namespace}, found)
 	if err != nil && apierrors.IsNotFound(err) {
-		dep, err := r.deploymentForHelloApp(helloApp)
-		if err != nil {
-			logger.Error(err, "Failed to define new Deployment resource for HelloApp")
-			meta.SetStatusCondition(&helloApp.Status.Conditions, metav1.Condition{
-				Type:               typeAvailableHelloApp,
-				Status:             metav1.ConditionFalse,
-				ObservedGeneration: helloApp.Generation,
-				Reason:             "Reconciling",
-				Message:            fmt.Sprintf("Failed to create Deployment: %s", err),
-			})
-			if err := r.Status().Update(ctx, helloApp); err != nil {
-				logger.Error(err, "Failed to update HelloApp status")
-				return ctrl.Result{}, err
-			}
-			return ctrl.Result{}, err
-		}
-
 		logger.Info("Creating a new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
 		if err = r.Create(ctx, dep); err != nil {
 			logger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
@@ -117,13 +119,23 @@ func (r *HelloAppReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	// Update replicas if needed
-	replicas := helloApp.Spec.Replicas
-	if replicas == 0 {
-		replicas = 1
+	// Ensure the deployment size is the same as the spec
+	needsUpdate := false
+	if *found.Spec.Replicas != *dep.Spec.Replicas {
+		found.Spec.Replicas = dep.Spec.Replicas
+		needsUpdate = true
 	}
-	if *found.Spec.Replicas != replicas {
-		found.Spec.Replicas = &replicas
+
+	// Ensure the container environment variables (Message) match
+	if len(found.Spec.Template.Spec.Containers) > 0 && len(dep.Spec.Template.Spec.Containers) > 0 {
+		if !reflect.DeepEqual(found.Spec.Template.Spec.Containers[0].Env, dep.Spec.Template.Spec.Containers[0].Env) {
+			found.Spec.Template.Spec.Containers[0].Env = dep.Spec.Template.Spec.Containers[0].Env
+			needsUpdate = true
+		}
+	}
+
+	if needsUpdate {
+		logger.Info("Updating Deployment", "Deployment.Namespace", found.Namespace, "Deployment.Name", found.Name)
 		if err = r.Update(ctx, found); err != nil {
 			logger.Error(err, "Failed to update Deployment", "Deployment.Namespace", found.Namespace, "Deployment.Name", found.Name)
 			return ctrl.Result{}, err
