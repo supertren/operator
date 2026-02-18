@@ -37,7 +37,6 @@ import (
 
 const (
 	typeAvailableHelloApp = "Available"
-	typeDegradedHelloApp  = "Degraded"
 )
 
 // HelloAppReconciler reconciles a HelloApp object
@@ -189,17 +188,25 @@ func (r *HelloAppReconciler) deploymentForHelloApp(helloApp *hellov1alpha1.Hello
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
 						Name:  "hello-app",
-						Image: "nginx:alpine",
-						Env: []corev1.EnvVar{
-							{
-								Name:  "HELLO_MESSAGE",
-								Value: helloApp.Spec.Message,
-							},
+						// nginxinc/nginx-unprivileged runs as non-root on port 8080 — required for OpenShift SCC
+					Image: "nginxinc/nginx-unprivileged:alpine",
+					Env: []corev1.EnvVar{
+						{
+							Name:  "HELLO_MESSAGE",
+							Value: helloApp.Spec.Message,
 						},
-						Ports: []corev1.ContainerPort{{
-							ContainerPort: 80,
-							Protocol:      corev1.ProtocolTCP,
-						}},
+					},
+					Ports: []corev1.ContainerPort{{
+						ContainerPort: 8080,
+						Protocol:      corev1.ProtocolTCP,
+					}},
+					SecurityContext: &corev1.SecurityContext{
+						AllowPrivilegeEscalation: func() *bool { b := false; return &b }(),
+						RunAsNonRoot:             func() *bool { b := true; return &b }(),
+						SeccompProfile: &corev1.SeccompProfile{
+							Type: corev1.SeccompProfileTypeRuntimeDefault,
+						},
+					},
 					}},
 				},
 			},

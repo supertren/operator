@@ -39,9 +39,10 @@ echo ""
 echo "[2/5] Creando namespace hello-operator-system..."
 oc new-project hello-operator-system 2>/dev/null || oc project hello-operator-system
 
-# --- Descargar dependencias Go ---
+# --- Generar go.sum y descargar dependencias ---
 echo ""
-echo "[3/5] Descargando dependencias Go..."
+echo "[3/5] Generando go.sum y descargando dependencias Go..."
+go mod tidy
 go mod download
 
 # --- Build y push de la imagen ---
@@ -56,21 +57,17 @@ docker push "$IMG"
 echo ""
 echo "[5/5] Desplegando el operador en OpenShift..."
 
-# Volver a developer para el deploy
-oc login -u developer -p developer https://api.crc.testing:6443 --insecure-skip-tls-verify
-
-# Instalar CRD
-echo "Instalando CRD..."
+# CRDs y ClusterRoles requieren cluster-admin (kubeadmin)
+echo "Instalando CRD y RBAC de cluster (requiere kubeadmin)..."
+oc login -u kubeadmin https://api.crc.testing:6443 --insecure-skip-tls-verify
 oc apply -f config/crd/bases/
-
-# Aplicar RBAC
-echo "Aplicando RBAC..."
-oc apply -f config/rbac/service_account.yaml
 oc apply -f config/rbac/role.yaml
 oc apply -f config/rbac/role_binding.yaml
 
-# Patch de la imagen y desplegar manager
-echo "Desplegando manager..."
+# Namespace y recursos namespace-level con developer
+echo "Desplegando manager (developer)..."
+oc login -u developer -p developer https://api.crc.testing:6443 --insecure-skip-tls-verify
+oc apply -f config/rbac/service_account.yaml
 sed "s|controller:latest|${IMG}|g" config/manager/manager.yaml | oc apply -f -
 
 # Esperar a que el deployment esté listo
