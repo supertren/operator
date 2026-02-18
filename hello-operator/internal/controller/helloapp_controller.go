@@ -166,9 +166,6 @@ func boolPtr(b bool) *bool {
 
 func (r *HelloAppReconciler) deploymentForHelloApp(helloApp *hellov1alpha1.HelloApp) (*appsv1.Deployment, error) {
 	replicas := helloApp.Spec.Replicas
-	if replicas == 0 {
-		replicas = 1
-	}
 
 	labels := map[string]string{
 		"app":        helloApp.Name,
