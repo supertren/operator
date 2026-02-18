@@ -160,6 +160,10 @@ func (r *HelloAppReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	return ctrl.Result{}, nil
 }
 
+func boolPtr(b bool) *bool {
+	return &b
+}
+
 func (r *HelloAppReconciler) deploymentForHelloApp(helloApp *hellov1alpha1.HelloApp) (*appsv1.Deployment, error) {
 	replicas := helloApp.Spec.Replicas
 	if replicas == 0 {
@@ -201,8 +205,8 @@ func (r *HelloAppReconciler) deploymentForHelloApp(helloApp *hellov1alpha1.Hello
 							Protocol:      corev1.ProtocolTCP,
 						}},
 						SecurityContext: &corev1.SecurityContext{
-							AllowPrivilegeEscalation: func() *bool { b := false; return &b }(),
-							RunAsNonRoot:             func() *bool { b := true; return &b }(),
+							AllowPrivilegeEscalation: boolPtr(false),
+							RunAsNonRoot:             boolPtr(true),
 							SeccompProfile: &corev1.SeccompProfile{
 								Type: corev1.SeccompProfileTypeRuntimeDefault,
 							},

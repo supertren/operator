@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"wsl -d Ubuntu -- /usr/local/go/bin/go version\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"wsl -d Ubuntu -- /usr/local/bin/operator-sdk version\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"wsl -d Ubuntu -- /usr/local/bin/oc version --client\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"wsl -d Ubuntu -- docker --version\")"
+    ]
+  }
+}
