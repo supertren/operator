@@ -5,7 +5,10 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"wsl -d Ubuntu -- chmod +x /c/Users/mik/operator/scripts/1-setup-wsl2.sh /c/Users/mik/operator/scripts/2-connect-openshift.sh /c/Users/mik/operator/scripts/3-build-and-deploy.sh\")",
-      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"wsl -d Ubuntu -- bash -c ''df -h | head -5 && mount | grep -E \"\"^C:|drvfs|/c \"\" | head -5''\")"
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"wsl -d Ubuntu -- bash -c ''df -h | head -5 && mount | grep -E \"\"^C:|drvfs|/c \"\" | head -5''\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"wsl -d Ubuntu -- bash -c ''ps aux | grep wget | grep -v grep''\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"wsl -d Ubuntu -- ps aux 2>/dev/null | findstr wget\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"wsl -d Ubuntu -- pgrep -la wget\")"
     ]
   }
 }
