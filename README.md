@@ -107,6 +107,25 @@ oc logs -l control-plane=controller-manager -n hello-operator-system -f
     └── 3-build-and-deploy.sh  # Build, push y deploy del operador
 ```
 
+## Architecture Diagram
+
+The following diagram illustrates the operator's architecture:
+
+```mermaid
+graph TD
+    subgraph "Kubernetes Cluster"
+        A[User] -- "kubectl apply" --> B(HelloApp CR);
+        B -- "triggers" --> C{Hello Operator};
+        C -- "creates/manages" --> D(Deployment);
+        D -- "manages" --> E(Pods);
+        C -- "updates status" --> B;
+    end
+
+    style C fill:#f9f,stroke:#333,stroke-width:2px
+    style D fill:#bbf,stroke:#333,stroke-width:2px
+    style E fill:#ccf,stroke:#333,stroke-width:2px
+```
+
 ## Comandos útiles
 
 ```bash
