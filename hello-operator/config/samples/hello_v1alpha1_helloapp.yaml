@@ -1,0 +1,11 @@
+apiVersion: hello.example.com/v1alpha1
+kind: HelloApp
+metadata:
+  labels:
+    app.kubernetes.io/name: hello-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: helloapp-sample
+  namespace: hello-operator-system
+spec:
+  message: "Hola desde OpenShift Local!"
+  replicas: 1

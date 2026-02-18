@@ -1,0 +1,16 @@
+# Binaries
+hello-operator/bin/
+hello-operator/manager
+
+# Go
+*.test
+*.out
+vendor/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
