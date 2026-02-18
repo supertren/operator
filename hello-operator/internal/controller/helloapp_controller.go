@@ -120,9 +120,17 @@ func (r *HelloAppReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	// Ensure the deployment size is the same as the spec
 	needsUpdate := false
-	if *found.Spec.Replicas != *dep.Spec.Replicas {
+	// dep.Spec.Replicas is set by us when creating the desired Deployment.
+	// The existing Deployment (`found`) may have a nil Replicas pointer, so
+	// guard dereferences to avoid panics.
+	if found.Spec.Replicas == nil && dep.Spec.Replicas != nil {
 		found.Spec.Replicas = dep.Spec.Replicas
 		needsUpdate = true
+	} else if found.Spec.Replicas != nil && dep.Spec.Replicas != nil {
+		if *found.Spec.Replicas != *dep.Spec.Replicas {
+			found.Spec.Replicas = dep.Spec.Replicas
+			needsUpdate = true
+		}
 	}
 
 	// Ensure the container environment variables (Message) match
